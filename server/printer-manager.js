@@ -44,7 +44,8 @@ class PrinterManager {
     this.printers.forEach((printer, id) => {
       const client = new BambuMQTTClient(
         printer,
-        (printerId, data) => this.handlePrinterMessage(printerId, data)
+        (printerId, data) => this.handlePrinterMessage(printerId, data),
+        (printerId, status) => this.handleStatusChange(printerId, status)
       );
       client.connect();
       this.mqttClients.set(id, client);
@@ -56,6 +57,17 @@ class PrinterManager {
     }, 30000);
   }
 
+  handleStatusChange(printerId, status) {
+    const state = this.printerStates.get(printerId);
+    if (!state) return;
+
+    state.status = status;
+    this.printerStates.set(printerId, state);
+
+    // Emit update to all connected clients
+    this.io.emit('printer-update', state);
+  }
+
   handlePrinterMessage(printerId, data) {
     const state = this.printerStates.get(printerId);
     if (!state) return;
@@ -63,7 +75,6 @@ class PrinterManager {
     // Extract relevant data from the print message
     const print = data.print;
     if (print) {
-      state.status = 'connected';
       state.state = print.gcode_state || state.state;
       state.progress = print.mc_percent || 0;
       state.currentFile = print.gcode_file || '';

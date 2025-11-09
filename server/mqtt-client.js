@@ -2,9 +2,10 @@ const mqtt = require('mqtt');
 const fs = require('fs');
 
 class BambuMQTTClient {
-  constructor(printerConfig, onMessage) {
+  constructor(printerConfig, onMessage, onStatusChange) {
     this.config = printerConfig;
     this.onMessage = onMessage;
+    this.onStatusChange = onStatusChange || (() => {});
     this.client = null;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
@@ -30,6 +31,9 @@ class BambuMQTTClient {
     this.client.on('connect', () => {
       console.log(`✓ Connected to ${this.config.name}`);
       this.reconnectAttempts = 0;
+
+      // Notify that printer is connected
+      this.onStatusChange(this.config.id, 'connected');
 
       // Subscribe to printer reports
       const reportTopic = `device/${this.config.serialNumber}/report`;
@@ -59,6 +63,7 @@ class BambuMQTTClient {
 
     this.client.on('offline', () => {
       console.log(`${this.config.name} went offline`);
+      this.onStatusChange(this.config.id, 'disconnected');
     });
 
     this.client.on('reconnect', () => {
