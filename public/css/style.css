@@ -105,8 +105,10 @@ body {
     max-width: 100%;
     margin: 0 auto;
     padding: 1rem;
-    overflow-y: auto;
     width: 100%;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
 }
 
 /* Table Layout - Optimized for 16:9 monitors */
