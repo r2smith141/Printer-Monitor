@@ -96,13 +96,10 @@ class PrinterMonitorApp {
     statusBadge.textContent = printer.status;
     statusBadge.className = `printer-status ${printer.status}`;
 
-    // Update file name
-    container.querySelector('.file-name').textContent = printer.currentFile || '--';
-
-    // Update state
-    const stateElement = container.querySelector('.printer-state');
-    stateElement.textContent = printer.state;
-    stateElement.className = `printer-state ${printer.state}`;
+    // Update file name with state indicator
+    const fileName = printer.currentFile || '--';
+    const stateIndicator = printer.state !== 'IDLE' ? ` (${printer.state})` : '';
+    container.querySelector('.file-name').textContent = fileName + stateIndicator;
 
     // Update layer info
     container.querySelector('.layer-info').textContent = `${printer.layer} / ${printer.totalLayers}`;
