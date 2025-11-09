@@ -31,7 +31,8 @@ class PrinterManager {
         totalLayers: 0,
         nozzleTemp: 0,
         bedTemp: 0,
-        lastUpdate: null
+        lastUpdate: null,
+        error: null
       });
     });
 
@@ -88,11 +89,84 @@ class PrinterManager {
       // Find matching model
       state.modelFile = this.getModelForFile(state.currentFile);
 
+      // Detect errors from printer data
+      state.error = this.detectError(print);
+
       this.printerStates.set(printerId, state);
 
       // Emit update to all connected clients
       this.io.emit('printer-update', state);
     }
+  }
+
+  detectError(print) {
+    // Check for various error conditions in the printer data
+
+    // HMS (Hardware Management System) errors
+    if (print.hms && Array.isArray(print.hms) && print.hms.length > 0) {
+      const errorCodes = print.hms.map(hms => hms.attr).join(', ');
+      const errorMsg = print.hms[0].text || 'Hardware error detected';
+      return {
+        code: errorCodes,
+        message: errorMsg
+      };
+    }
+
+    // Print error state
+    if (print.print_error && print.print_error !== 0) {
+      return {
+        code: `PRINT_ERROR_${print.print_error}`,
+        message: this.getErrorMessage(print.print_error, print)
+      };
+    }
+
+    // Filament runout
+    if (print.ams && print.ams.ams && Array.isArray(print.ams.ams)) {
+      for (const ams of print.ams.ams) {
+        if (ams.tray && Array.isArray(ams.tray)) {
+          for (let i = 0; i < ams.tray.length; i++) {
+            const tray = ams.tray[i];
+            if (tray.remain !== undefined && tray.remain <= 0 && print.gcode_state === 'PAUSE') {
+              return {
+                code: 'FILAMENT_RUNOUT',
+                message: `Filament runout detected in AMS ${ams.id + 1}, Tray ${i + 1}`
+              };
+            }
+          }
+        }
+      }
+    }
+
+    // Nozzle clog detection (temperature anomaly)
+    if (print.nozzle_temper && print.nozzle_target_temper) {
+      const tempDiff = Math.abs(print.nozzle_temper - print.nozzle_target_temper);
+      if (tempDiff > 15 && print.gcode_state === 'RUNNING') {
+        return {
+          code: 'TEMP_ANOMALY',
+          message: `Nozzle temperature anomaly: ${Math.round(print.nozzle_temper)}°C (target: ${Math.round(print.nozzle_target_temper)}°C)`
+        };
+      }
+    }
+
+    // No error detected
+    return null;
+  }
+
+  getErrorMessage(errorCode, print) {
+    const errorMessages = {
+      1: 'Print stopped due to user intervention',
+      2: 'Filament runout detected',
+      3: 'Nozzle temperature error',
+      4: 'Bed temperature error',
+      5: 'Heatbed abnormal',
+      6: 'Front cover fallen',
+      7: 'Nozzle clog detected',
+      8: 'External spool runout',
+      9: 'AMS filament runout',
+      10: 'Build plate error'
+    };
+
+    return errorMessages[errorCode] || `Print error (code: ${errorCode})`;
   }
 
   getModelForFile(filename) {

@@ -8,7 +8,10 @@
 </head>
 <body>
     <header>
-        <h1>3D Printer Monitor</h1>
+        <div class="header-left">
+            <img src="/logo.png" alt="Logo" class="header-logo" id="header-logo">
+            <h1>3D Printer Monitor</h1>
+        </div>
         <div class="header-info">
             <span id="connection-status" class="status-badge disconnected">Disconnected</span>
             <button id="refresh-btn" class="btn">Refresh All</button>
@@ -35,41 +38,50 @@
     </main>
 
     <template id="printer-row-template">
-        <div class="printer-row" data-printer-id="">
-            <div class="col-name">
-                <span class="printer-name"></span>
-            </div>
-            <div class="col-status">
-                <span class="printer-status"></span>
-            </div>
-            <div class="col-model">
-                <div class="model-viewer-small">
-                    <canvas class="model-canvas"></canvas>
-                    <div class="no-model-message">--</div>
+        <div class="printer-row-container" data-printer-id="">
+            <div class="printer-row">
+                <div class="col-name">
+                    <span class="printer-name"></span>
+                </div>
+                <div class="col-status">
+                    <span class="printer-status"></span>
+                </div>
+                <div class="col-model">
+                    <div class="model-viewer-small">
+                        <canvas class="model-canvas"></canvas>
+                        <div class="no-model-message">--</div>
+                    </div>
+                </div>
+                <div class="col-file">
+                    <span class="file-name">--</span>
+                </div>
+                <div class="col-state">
+                    <span class="printer-state">IDLE</span>
+                </div>
+                <div class="col-progress">
+                    <div class="progress-bar-inline">
+                        <div class="progress-fill"></div>
+                        <span class="progress-text">0%</span>
+                    </div>
+                </div>
+                <div class="col-layer">
+                    <span class="layer-info">0 / 0</span>
+                </div>
+                <div class="col-time">
+                    <span class="time-remaining">--</span>
+                </div>
+                <div class="col-temps">
+                    <div class="temps">
+                        <div class="temp-item">N: <span class="nozzle-temp">--</span>°C</div>
+                        <div class="temp-item">B: <span class="bed-temp">--</span>°C</div>
+                    </div>
                 </div>
             </div>
-            <div class="col-file">
-                <span class="file-name">--</span>
-            </div>
-            <div class="col-state">
-                <span class="printer-state">IDLE</span>
-            </div>
-            <div class="col-progress">
-                <div class="progress-bar-inline">
-                    <div class="progress-fill"></div>
-                    <span class="progress-text">0%</span>
-                </div>
-            </div>
-            <div class="col-layer">
-                <span class="layer-info">0 / 0</span>
-            </div>
-            <div class="col-time">
-                <span class="time-remaining">--</span>
-            </div>
-            <div class="col-temps">
-                <div class="temps">
-                    <div class="temp-item">N: <span class="nozzle-temp">--</span>°C</div>
-                    <div class="temp-item">B: <span class="bed-temp">--</span>°C</div>
+            <div class="error-panel" style="display: none;">
+                <div class="error-icon">⚠</div>
+                <div class="error-details">
+                    <div class="error-title">Error</div>
+                    <div class="error-message"></div>
                 </div>
             </div>
         </div>
