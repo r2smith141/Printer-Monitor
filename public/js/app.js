@@ -42,61 +42,71 @@ class PrinterMonitorApp {
   }
 
   initializePrinters(printers) {
-    const grid = document.getElementById('printers-grid');
-    grid.innerHTML = '';
+    const list = document.getElementById('printers-list');
+    list.innerHTML = '';
 
     printers.forEach(printer => {
-      const card = this.createPrinterCard(printer);
-      grid.appendChild(card);
+      const row = this.createPrinterRow(printer);
+      list.appendChild(row);
       this.printers.set(printer.id, printer);
-      this.updatePrinterCard(printer);
+      this.updatePrinterRow(printer);
     });
   }
 
-  createPrinterCard(printer) {
-    const template = document.getElementById('printer-card-template');
-    const card = template.content.cloneNode(true);
+  createPrinterRow(printer) {
+    const template = document.getElementById('printer-row-template');
+    const row = template.content.cloneNode(true);
 
-    const cardElement = card.querySelector('.printer-card');
-    cardElement.dataset.printerId = printer.id;
+    const rowElement = row.querySelector('.printer-row');
+    rowElement.dataset.printerId = printer.id;
 
-    const canvas = card.querySelector('.model-canvas');
+    const canvas = row.querySelector('.model-canvas');
     const viewer = new ModelViewer(canvas);
     this.modelViewers.set(printer.id, viewer);
 
-    return card;
+    return row;
   }
 
   updatePrinter(printerData) {
     this.printers.set(printerData.id, printerData);
-    this.updatePrinterCard(printerData);
+    this.updatePrinterRow(printerData);
   }
 
-  updatePrinterCard(printer) {
-    const card = document.querySelector(`[data-printer-id="${printer.id}"]`);
-    if (!card) return;
+  updatePrinterRow(printer) {
+    const row = document.querySelector(`[data-printer-id="${printer.id}"]`);
+    if (!row) return;
 
-    // Update header
-    card.querySelector('.printer-name').textContent = printer.name;
+    // Update name
+    row.querySelector('.printer-name').textContent = printer.name;
 
-    const statusBadge = card.querySelector('.printer-status');
+    // Update status - FIX: Use actual connection state
+    const statusBadge = row.querySelector('.printer-status');
     statusBadge.textContent = printer.status;
     statusBadge.className = `printer-status ${printer.status}`;
 
-    // Update info
-    card.querySelector('.file-name').textContent = printer.currentFile || '--';
+    // Update file name
+    row.querySelector('.file-name').textContent = printer.currentFile || '--';
 
-    const stateElement = card.querySelector('.printer-state');
+    // Update state
+    const stateElement = row.querySelector('.printer-state');
     stateElement.textContent = printer.state;
-    stateElement.className = `info-value printer-state ${printer.state}`;
+    stateElement.className = `printer-state ${printer.state}`;
 
-    card.querySelector('.layer-info').textContent = `${printer.layer} / ${printer.totalLayers}`;
-    card.querySelector('.time-remaining').textContent = this.formatTime(printer.remainingTime);
-    card.querySelector('.temps').textContent = `Nozzle: ${Math.round(printer.nozzleTemp)}°C | Bed: ${Math.round(printer.bedTemp)}°C`;
+    // Update layer info
+    row.querySelector('.layer-info').textContent = `${printer.layer} / ${printer.totalLayers}`;
+
+    // Update time remaining
+    row.querySelector('.time-remaining').textContent = this.formatTime(printer.remainingTime);
+
+    // Update temperatures
+    row.querySelector('.nozzle-temp').textContent = Math.round(printer.nozzleTemp);
+    row.querySelector('.bed-temp').textContent = Math.round(printer.bedTemp);
 
     // Update progress
-    card.querySelector('.progress-percentage').textContent = `${Math.round(printer.progress)}%`;
-    card.querySelector('.progress-fill').style.width = `${printer.progress}%`;
+    const progressText = row.querySelector('.progress-text');
+    const progressFill = row.querySelector('.progress-fill');
+    progressText.textContent = `${Math.round(printer.progress)}%`;
+    progressFill.style.width = `${printer.progress}%`;
 
     // Update 3D model
     this.update3DModel(printer);
@@ -106,9 +116,9 @@ class PrinterMonitorApp {
     const viewer = this.modelViewers.get(printer.id);
     if (!viewer) return;
 
-    const card = document.querySelector(`[data-printer-id="${printer.id}"]`);
-    const noModelMessage = card.querySelector('.no-model-message');
-    const canvas = card.querySelector('.model-canvas');
+    const row = document.querySelector(`[data-printer-id="${printer.id}"]`);
+    const noModelMessage = row.querySelector('.no-model-message');
+    const canvas = row.querySelector('.model-canvas');
 
     if (printer.modelFile && printer.modelFile.modelFile) {
       // Load the 3D model
