@@ -40,12 +40,11 @@ header {
 }
 
 .header-logo {
-    height: 50px;
+    max-height: 40px;
+    max-width: 150px;
     width: auto;
-    display: none; /* Hidden by default, shown when image loads */
-}
-
-.header-logo.loaded {
+    height: auto;
+    object-fit: contain;
     display: block;
 }
 
@@ -116,7 +115,9 @@ body {
     border-radius: 0.5rem;
     overflow: hidden;
     border: 1px solid var(--border-color);
-    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
 }
 
 .table-header {
@@ -135,7 +136,7 @@ body {
 .table-body {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    flex: 1;
     min-height: 0;
 }
 
