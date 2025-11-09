@@ -14,11 +14,8 @@ class PrinterMonitorApp {
 
   setupLogo() {
     const logo = document.getElementById('header-logo');
-    logo.addEventListener('load', () => {
-      logo.classList.add('loaded');
-    });
     logo.addEventListener('error', () => {
-      // Logo failed to load, keep it hidden
+      // Logo failed to load, hide it
       logo.style.display = 'none';
     });
   }
