@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bambu Lab Printer Monitor</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <header>
+        <h1>3D Printer Monitor</h1>
+        <div class="header-info">
+            <span id="connection-status" class="status-badge disconnected">Disconnected</span>
+            <button id="refresh-btn" class="btn">Refresh All</button>
+        </div>
+    </header>
+
+    <main class="container">
+        <div id="printers-grid" class="printers-grid">
+            <!-- Printer cards will be dynamically inserted here -->
+        </div>
+    </main>
+
+    <template id="printer-card-template">
+        <div class="printer-card" data-printer-id="">
+            <div class="printer-header">
+                <h2 class="printer-name"></h2>
+                <span class="printer-status"></span>
+            </div>
+
+            <div class="printer-body">
+                <div class="model-viewer">
+                    <canvas class="model-canvas"></canvas>
+                    <div class="no-model-message">No active print</div>
+                </div>
+
+                <div class="printer-info">
+                    <div class="info-row">
+                        <span class="info-label">File:</span>
+                        <span class="info-value file-name">--</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">State:</span>
+                        <span class="info-value printer-state">IDLE</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Layer:</span>
+                        <span class="info-value layer-info">0 / 0</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Time Left:</span>
+                        <span class="info-value time-remaining">--</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">Temps:</span>
+                        <span class="info-value temps">Nozzle: --°C | Bed: --°C</span>
+                    </div>
+                </div>
+
+                <div class="progress-section">
+                    <div class="progress-header">
+                        <span>Progress</span>
+                        <span class="progress-percentage">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </template>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+    <script src="/js/model-viewer.js"></script>
+    <script src="/js/app.js"></script>
+</body>
+</html>
