@@ -5,8 +5,8 @@
 }
 
 :root {
-    --primary-color: #2563eb;
-    --secondary-color: #1e40af;
+    --primary-color: #6b7280;
+    --secondary-color: #4b5563;
     --success-color: #10b981;
     --warning-color: #fbbf24;
     --danger-color: #ef4444;
@@ -26,7 +26,7 @@ body {
 
 header {
     background-color: var(--card-bg);
-    padding: 1.5rem 2rem;
+    padding: 0.75rem 2rem;
     border-bottom: 2px solid var(--border-color);
     display: flex;
     justify-content: space-between;
@@ -123,8 +123,8 @@ body {
     display: grid;
     grid-template-columns: 180px 100px 120px 1fr 300px 100px 120px 150px;
     gap: 1rem;
-    padding: 1rem 1.5rem;
-    background: linear-gradient(135deg, rgba(37, 99, 235, 0.15) 0%, rgba(37, 99, 235, 0.05) 100%);
+    padding: 0.75rem 1.5rem;
+    background: linear-gradient(135deg, rgba(107, 114, 128, 0.15) 0%, rgba(107, 114, 128, 0.05) 100%);
     border-bottom: 2px solid var(--border-color);
     font-weight: 700;
     font-size: 0.875rem;
@@ -161,14 +161,14 @@ body {
     display: grid;
     grid-template-columns: 180px 100px 120px 1fr 300px 100px 120px 150px;
     gap: 1rem;
-    padding: 1rem 1.5rem;
+    padding: 0.75rem 1.5rem;
     align-items: center;
     transition: background-color 0.2s;
     flex: 1;
 }
 
 .printer-row:hover {
-    background-color: rgba(37, 99, 235, 0.05);
+    background-color: rgba(107, 114, 128, 0.05);
 }
 
 /* Error Display - Inline and subtle */
@@ -281,7 +281,7 @@ body {
     background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
     transition: width 0.5s ease;
     width: 0%;
-    box-shadow: 0 0 10px rgba(37, 99, 235, 0.5);
+    box-shadow: 0 0 10px rgba(107, 114, 128, 0.5);
 }
 
 .progress-text {
