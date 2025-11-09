@@ -1,0 +1,51 @@
+[
+  {
+    "id": "printer1",
+    "name": "Printer 1",
+    "ip": "192.168.1.101",
+    "accessCode": "12345678",
+    "serialNumber": "00M00A000000001"
+  },
+  {
+    "id": "printer2",
+    "name": "Printer 2",
+    "ip": "192.168.1.102",
+    "accessCode": "12345678",
+    "serialNumber": "00M00A000000002"
+  },
+  {
+    "id": "printer3",
+    "name": "Printer 3",
+    "ip": "192.168.1.103",
+    "accessCode": "12345678",
+    "serialNumber": "00M00A000000003"
+  },
+  {
+    "id": "printer4",
+    "name": "Printer 4",
+    "ip": "192.168.1.104",
+    "accessCode": "12345678",
+    "serialNumber": "00M00A000000004"
+  },
+  {
+    "id": "printer5",
+    "name": "Printer 5",
+    "ip": "192.168.1.105",
+    "accessCode": "12345678",
+    "serialNumber": "00M00A000000005"
+  },
+  {
+    "id": "printer6",
+    "name": "Printer 6",
+    "ip": "192.168.1.106",
+    "accessCode": "12345678",
+    "serialNumber": "00M00A000000006"
+  },
+  {
+    "id": "printer7",
+    "name": "Printer 7",
+    "ip": "192.168.1.107",
+    "accessCode": "12345678",
+    "serialNumber": "00M00A000000007"
+  }
+]

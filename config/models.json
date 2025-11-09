@@ -1,0 +1,14 @@
+{
+  "benchy.3mf": {
+    "modelFile": "benchy.stl",
+    "displayName": "3D Benchy"
+  },
+  "test_cube.3mf": {
+    "modelFile": "test_cube.stl",
+    "displayName": "Calibration Cube"
+  },
+  "example_part.gcode": {
+    "modelFile": "example.stl",
+    "displayName": "Example Part"
+  }
+}
