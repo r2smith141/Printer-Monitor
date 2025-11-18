@@ -71,11 +71,17 @@ class PrinterManager {
 
   handlePrinterMessage(printerId, data) {
     const state = this.printerStates.get(printerId);
-    if (!state) return;
+    if (!state) {
+      console.log(`WARNING: No state found for printer ${printerId}`);
+      return;
+    }
 
     // Extract relevant data from the print message
     const print = data.print;
     if (print) {
+      console.log(`\n>>> Processing data for ${state.name}`);
+      console.log(`State: ${print.gcode_state}, Progress: ${print.mc_percent}%, File: ${print.gcode_file}`);
+
       state.state = print.gcode_state || state.state;
       state.progress = print.mc_percent || 0;
       state.currentFile = print.gcode_file || '';
@@ -94,8 +100,13 @@ class PrinterManager {
 
       this.printerStates.set(printerId, state);
 
+      console.log(`Emitting update: ${state.name} - ${state.state} ${state.progress}%`);
+
       // Emit update to all connected clients
       this.io.emit('printer-update', state);
+    } else {
+      console.log(`WARNING: No print data in message for ${state.name}`);
+      console.log('Available keys:', Object.keys(data));
     }
   }
 

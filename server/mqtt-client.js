@@ -51,9 +51,23 @@ class BambuMQTTClient {
     this.client.on('message', (topic, message) => {
       try {
         const data = JSON.parse(message.toString());
+
+        // Debug: Log received data structure
+        console.log(`\n=== Message from ${this.config.name} ===`);
+        console.log('Topic:', topic);
+        console.log('Data keys:', Object.keys(data));
+        if (data.print) {
+          console.log('Print data keys:', Object.keys(data.print));
+          console.log('Print state:', data.print.gcode_state);
+          console.log('Progress:', data.print.mc_percent);
+          console.log('File:', data.print.gcode_file);
+        }
+        console.log('=================\n');
+
         this.onMessage(this.config.id, data);
       } catch (err) {
         console.error(`Error parsing message from ${this.config.name}:`, err);
+        console.error('Raw message:', message.toString().substring(0, 200));
       }
     });
 
