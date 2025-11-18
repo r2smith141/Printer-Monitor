@@ -9,6 +9,8 @@ class BambuMQTTClient {
     this.client = null;
     this.reconnectAttempts = 0;
     this.maxReconnectAttempts = 5;
+    this.messageReceived = false;
+    this.messageCheckTimer = null;
   }
 
   connect() {
@@ -35,20 +37,51 @@ class BambuMQTTClient {
       // Notify that printer is connected
       this.onStatusChange(this.config.id, 'connected');
 
-      // Subscribe to printer reports
-      const reportTopic = `device/${this.config.serialNumber}/report`;
-      this.client.subscribe(reportTopic, (err) => {
+      // Subscribe to printer reports - try multiple topic patterns
+      const topics = [
+        `device/${this.config.serialNumber}/report`,  // Standard report topic
+        `device/${this.config.serialNumber}/#`,       // All subtopics for this device
+        `device/#`,                                     // All device topics (debug)
+        `#`                                             // EVERYTHING (debug)
+      ];
+
+      console.log(`Subscribing ${this.config.name} to topics:`);
+      topics.forEach(t => console.log(`  - ${t}`));
+
+      this.client.subscribe(topics, { qos: 0 }, (err) => {
         if (err) {
           console.error(`Failed to subscribe to ${this.config.name}:`, err);
         } else {
-          console.log(`Subscribed to ${this.config.name} reports`);
+          console.log(`✓ Subscribed to ${this.config.name} successfully`);
+
           // Request full status
           this.requestStatus();
+
+          // Set a timer to check if we receive any messages
+          this.messageCheckTimer = setTimeout(() => {
+            if (!this.messageReceived) {
+              console.log(`⚠️  WARNING: ${this.config.name} - No messages received after 15 seconds`);
+              console.log(`   This likely means:`);
+              console.log(`   1. Serial number mismatch (check printer's actual serial)`);
+              console.log(`   2. Printer not configured to send MQTT updates`);
+              console.log(`   3. Different topic structure than expected`);
+            }
+          }, 15000);
         }
       });
     });
 
     this.client.on('message', (topic, message) => {
+      // Mark that we've received at least one message
+      if (!this.messageReceived) {
+        this.messageReceived = true;
+        console.log(`✓ First message received from ${this.config.name}!`);
+        if (this.messageCheckTimer) {
+          clearTimeout(this.messageCheckTimer);
+          this.messageCheckTimer = null;
+        }
+      }
+
       console.log(`\n📨 Message received from ${this.config.name} on topic: ${topic}`);
       console.log(`   Message length: ${message.length} bytes`);
 
@@ -98,20 +131,20 @@ class BambuMQTTClient {
     }
 
     const requestTopic = `device/${this.config.serialNumber}/request`;
+    // Simplified payload format - try minimal version first
     const payload = {
       pushing: {
         sequence_id: '0',
-        command: 'pushall',
-        version: 1,
-        push_target: 1
+        command: 'pushall'
       }
     };
 
     console.log(`>>> Requesting status from ${this.config.name}`);
+    console.log(`    Serial Number: ${this.config.serialNumber}`);
     console.log(`    Topic: ${requestTopic}`);
     console.log(`    Payload:`, JSON.stringify(payload));
 
-    this.client.publish(requestTopic, JSON.stringify(payload), (err) => {
+    this.client.publish(requestTopic, JSON.stringify(payload), { qos: 0 }, (err) => {
       if (err) {
         console.error(`Failed to publish status request to ${this.config.name}:`, err);
       } else {
@@ -121,6 +154,10 @@ class BambuMQTTClient {
   }
 
   disconnect() {
+    if (this.messageCheckTimer) {
+      clearTimeout(this.messageCheckTimer);
+      this.messageCheckTimer = null;
+    }
     if (this.client) {
       this.client.end();
     }
