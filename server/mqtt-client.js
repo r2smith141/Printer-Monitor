@@ -49,11 +49,14 @@ class BambuMQTTClient {
     });
 
     this.client.on('message', (topic, message) => {
+      console.log(`\n📨 Message received from ${this.config.name} on topic: ${topic}`);
+      console.log(`   Message length: ${message.length} bytes`);
+
       try {
         const data = JSON.parse(message.toString());
 
         // Debug: Log received data structure
-        console.log(`\n=== Message from ${this.config.name} ===`);
+        console.log(`=== Parsed Message from ${this.config.name} ===`);
         console.log('Topic:', topic);
         console.log('Data keys:', Object.keys(data));
         if (data.print) {
@@ -66,8 +69,8 @@ class BambuMQTTClient {
 
         this.onMessage(this.config.id, data);
       } catch (err) {
-        console.error(`Error parsing message from ${this.config.name}:`, err);
-        console.error('Raw message:', message.toString().substring(0, 200));
+        console.error(`❌ Error parsing message from ${this.config.name}:`, err);
+        console.error('Raw message (first 200 chars):', message.toString().substring(0, 200));
       }
     });
 
@@ -90,6 +93,7 @@ class BambuMQTTClient {
 
   requestStatus() {
     if (!this.client || !this.client.connected) {
+      console.log(`Cannot request status for ${this.config.name} - not connected`);
       return;
     }
 
@@ -103,7 +107,17 @@ class BambuMQTTClient {
       }
     };
 
-    this.client.publish(requestTopic, JSON.stringify(payload));
+    console.log(`>>> Requesting status from ${this.config.name}`);
+    console.log(`    Topic: ${requestTopic}`);
+    console.log(`    Payload:`, JSON.stringify(payload));
+
+    this.client.publish(requestTopic, JSON.stringify(payload), (err) => {
+      if (err) {
+        console.error(`Failed to publish status request to ${this.config.name}:`, err);
+      } else {
+        console.log(`    ✓ Status request sent to ${this.config.name}`);
+      }
+    });
   }
 
   disconnect() {
