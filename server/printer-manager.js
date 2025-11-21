@@ -134,16 +134,25 @@ class PrinterManager {
     // Check for various error conditions in the printer data
 
     // HMS (Hardware Management System) errors
+    // Only report serious errors (severity codes ending in 0004, 0007, 0002)
     if (print.hms && Array.isArray(print.hms) && print.hms.length > 0) {
-      const errors = print.hms.map(hms => ({
-        code: hms.attr,
-        message: this.getHMSErrorMessage(hms.attr) // Use a helper to get friendly message
-      }));
+      const seriousErrors = print.hms.filter(hms => {
+        const attr = hms.attr || '';
+        // Check if this is a serious error (ends with 0004, 0007, or 0002)
+        return attr.endsWith('0004') || attr.endsWith('0007') || attr.endsWith('0002');
+      });
 
-      return {
-        code: errors.map(e => e.code).join(', '),
-        message: errors.map(e => e.message).join('; ')
-      };
+      if (seriousErrors.length > 0) {
+        const errors = seriousErrors.map(hms => ({
+          code: hms.attr,
+          message: this.getHMSErrorMessage(hms.attr)
+        }));
+
+        return {
+          code: errors.map(e => e.code).join(', '),
+          message: errors.map(e => e.message).join('; ')
+        };
+      }
     }
 
     // Print error state
@@ -152,34 +161,6 @@ class PrinterManager {
         code: `PRINT_ERROR_${print.print_error}`,
         message: this.getErrorMessage(print.print_error, print)
       };
-    }
-
-    // Filament runout
-    if (print.ams && print.ams.ams && Array.isArray(print.ams.ams)) {
-      for (const ams of print.ams.ams) {
-        if (ams.tray && Array.isArray(ams.tray)) {
-          for (let i = 0; i < ams.tray.length; i++) {
-            const tray = ams.tray[i];
-            if (tray.remain !== undefined && tray.remain <= 0 && print.gcode_state === 'PAUSE') {
-              return {
-                code: 'FILAMENT_RUNOUT',
-                message: `Filament runout detected in AMS ${ams.id + 1}, Tray ${i + 1}`
-              };
-            }
-          }
-        }
-      }
-    }
-
-    // Nozzle clog detection (temperature anomaly)
-    if (print.nozzle_temper && print.nozzle_target_temper) {
-      const tempDiff = Math.abs(print.nozzle_temper - print.nozzle_target_temper);
-      if (tempDiff > 15 && print.gcode_state === 'RUNNING') {
-        return {
-          code: 'TEMP_ANOMALY',
-          message: `Nozzle temperature anomaly: ${Math.round(print.nozzle_temper)}°C (target: ${Math.round(print.nozzle_target_temper)}°C)`
-        };
-      }
     }
 
     // No error detected

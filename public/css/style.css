@@ -164,7 +164,7 @@ main {
     flex-direction: column;
     gap: 10px;
     flex: 1;
-    overflow-y: auto;
+    overflow-y: hidden;
     min-height: 0;
 }
 
@@ -199,14 +199,21 @@ main {
     padding: 10px 15px;
     color: var(--danger-color);
     font-size: 0.9rem;
+    font-weight: 500;
     display: none;
     align-items: flex-start;
     flex-direction: column;
     gap: 5px;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .error-panel.visible {
     display: flex;
+}
+
+.error-message {
+    width: 100%;
 }
 
 .printer-row {
@@ -215,6 +222,12 @@ main {
     padding: 15px;
     align-items: center;
     height: 100%;
+}
+
+/* Error Border - Only on printer row */
+.printer-row-container.has-error .printer-row {
+    border: 2px solid var(--danger-color);
+    border-radius: var(--border-radius);
 }
 
 /* Multi-Filament Mapping */
@@ -367,21 +380,6 @@ main {
     gap: 4px;
     font-size: 0.9rem;
     color: var(--text-secondary);
-}
-
-/* Error Panel */
-.error-panel {
-    background-color: rgba(231, 76, 60, 0.1);
-    border-top: 1px solid var(--danger-color);
-    padding: 10px 15px;
-    color: var(--danger-color);
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-}
-
-.has-error {
-    border: 1px solid var(--danger-color);
 }
 
 /* Print Job Tab */
