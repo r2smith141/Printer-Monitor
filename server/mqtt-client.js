@@ -49,23 +49,24 @@ class BambuMQTTClient {
     });
 
     this.client.on('message', (topic, message) => {
-      console.log(`\n📨 Message received from ${this.config.name} on topic: ${topic}`);
-      console.log(`   Message length: ${message.length} bytes`);
+      // Reduced logging - only log errors or important state changes
+      // console.log(`\n📨 Message received from ${this.config.name} on topic: ${topic}`);
+      // console.log(`   Message length: ${message.length} bytes`);
 
       try {
         const data = JSON.parse(message.toString());
 
-        // Debug: Log received data structure
-        console.log(`=== Parsed Message from ${this.config.name} ===`);
-        console.log('Topic:', topic);
-        console.log('Data keys:', Object.keys(data));
-        if (data.print) {
-          console.log('Print data keys:', Object.keys(data.print));
-          console.log('Print state:', data.print.gcode_state);
-          console.log('Progress:', data.print.mc_percent);
-          console.log('File:', data.print.gcode_file);
-        }
-        console.log('=================\n');
+        // Debug: Log received data structure (commented out to reduce noise)
+        // console.log(`=== Parsed Message from ${this.config.name} ===`);
+        // console.log('Topic:', topic);
+        // console.log('Data keys:', Object.keys(data));
+        // if (data.print) {
+        //   console.log('Print data keys:', Object.keys(data.print));
+        //   console.log('Print state:', data.print.gcode_state);
+        //   console.log('Progress:', data.print.mc_percent);
+        //   console.log('File:', data.print.gcode_file);
+        // }
+        // console.log('=================\n');
 
         this.onMessage(this.config.id, data);
       } catch (err) {

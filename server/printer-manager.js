@@ -135,11 +135,14 @@ class PrinterManager {
 
     // HMS (Hardware Management System) errors
     if (print.hms && Array.isArray(print.hms) && print.hms.length > 0) {
-      const errorCodes = print.hms.map(hms => hms.attr).join(', ');
-      const errorMsg = print.hms[0].text || 'Hardware error detected';
+      const errors = print.hms.map(hms => ({
+        code: hms.attr,
+        message: this.getHMSErrorMessage(hms.attr) // Use a helper to get friendly message
+      }));
+
       return {
-        code: errorCodes,
-        message: errorMsg
+        code: errors.map(e => e.code).join(', '),
+        message: errors.map(e => e.message).join('; ')
       };
     }
 
@@ -198,6 +201,31 @@ class PrinterManager {
     };
 
     return errorMessages[errorCode] || `Print error (code: ${errorCode})`;
+  }
+
+  getHMSErrorMessage(hmsCode) {
+    // Simplified mapping for common HMS codes. 
+    // In a real app, this would be a comprehensive lookup table or external JSON.
+    // Bambu HMS codes are hex values.
+    const hmsMap = {
+      '0500-0000-0002-0004': 'Cutter stuck',
+      '0300-0100-0001-0004': 'Hotend fan speed abnormal',
+      '0300-0200-0001-0004': 'Heatbreak fan speed abnormal',
+      '0300-0300-0001-0004': 'Auxiliary part cooling fan speed abnormal',
+      '0300-0400-0001-0004': 'Chamber temperature regulator fan speed abnormal',
+      '0300-1000-0002-0001': 'Extruder clogged',
+      '0300-1100-0002-0002': 'Nozzle temperature abnormal',
+      '0300-1200-0002-0002': 'Heatbed temperature abnormal',
+      '0700-2000-0002-0004': 'AMS filament runout',
+      '0700-4000-0002-0004': 'AMS fail to feed filament',
+      '0700-4500-0002-0004': 'AMS fail to withdraw filament',
+      '0700-6000-0002-0004': 'AMS communication error'
+    };
+
+    // Format hex code if needed or use as is
+    // The user provided example has "attr" which is the code.
+
+    return hmsMap[hmsCode] || `Hardware Error (${hmsCode})`;
   }
 
   getModelForFile(filename) {

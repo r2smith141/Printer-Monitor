@@ -179,6 +179,36 @@ main {
     min-height: 80px;
 }
 
+/* Dynamic Error Expansion */
+.table-body.has-error .printer-row-container {
+    flex: 0 0 auto;
+    min-height: 80px;
+    max-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.table-body.has-error .printer-row-container.has-error {
+    flex: 1;
+    min-height: 150px;
+    max-height: none;
+}
+
+.error-panel {
+    background-color: rgba(231, 76, 60, 0.1);
+    border-top: 1px solid var(--danger-color);
+    padding: 10px 15px;
+    color: var(--danger-color);
+    font-size: 0.9rem;
+    display: none;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.error-panel.visible {
+    display: flex;
+}
+
 .printer-row {
     display: grid;
     grid-template-columns: 2fr 1.5fr 100px 2fr 1.5fr 1fr 1fr 1.5fr;

@@ -240,15 +240,29 @@ class PrinterMonitorApp {
   updateErrorDisplay(container, printer) {
     const errorPanel = container.querySelector('.error-panel');
     const errorMessage = container.querySelector('.error-message');
+    const tableBody = document.querySelector('.table-body');
 
     if (printer.error && printer.error.message) {
       container.classList.add('has-error');
-      errorPanel.style.display = 'flex';
+      errorPanel.classList.add('visible');
       errorMessage.textContent = printer.error.message;
+
+      // Add has-error class to table-body to trigger expansion behavior
+      if (tableBody && !tableBody.classList.contains('has-error')) {
+        tableBody.classList.add('has-error');
+      }
     } else {
       container.classList.remove('has-error');
-      errorPanel.style.display = 'none';
+      errorPanel.classList.remove('visible');
       errorMessage.textContent = '';
+
+      // Remove has-error from table-body if no errors exist
+      if (tableBody) {
+        const hasAnyErrors = document.querySelectorAll('.printer-row-container.has-error').length > 0;
+        if (!hasAnyErrors) {
+          tableBody.classList.remove('has-error');
+        }
+      }
     }
   }
 
