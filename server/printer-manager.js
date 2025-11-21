@@ -81,11 +81,25 @@ class PrinterManager {
     // Extract relevant data from the print message
     const print = data.print;
     if (print) {
-      // console.log(`\n>>> Processing data for ${state.name}`); // Reduce log noise
+      // Debug: Log available fields to find the actual filename field (uncomment to debug)
+      // console.log(`\n>>> Available print fields for ${state.name}:`, Object.keys(print));
+      // console.log('subtask_name:', print.subtask_name);
+      // console.log('gcode_file:', print.gcode_file);
 
       state.state = print.gcode_state || state.state;
       state.progress = print.mc_percent || 0;
-      state.currentFile = print.gcode_file || '';
+
+      // Use subtask_name (actual print job name) if available, otherwise extract from gcode_file path
+      if (print.subtask_name) {
+        state.currentFile = print.subtask_name;
+      } else if (print.gcode_file) {
+        // Extract filename from path (e.g., "/data/Metadata/plate_1.gcode" -> "plate_1.gcode")
+        const pathParts = print.gcode_file.split('/');
+        state.currentFile = pathParts[pathParts.length - 1];
+      } else {
+        state.currentFile = '';
+      }
+
       state.remainingTime = print.mc_remaining_time || 0;
       state.layer = print.layer_num || 0;
       state.totalLayers = print.total_layer_num || 0;
