@@ -181,7 +181,7 @@ class PrinterMonitorApp {
     // Update print job form if this printer is selected
     const printerSelect = document.getElementById('printer-select');
     if (printerSelect.value === printerData.id) {
-      this.handlePrinterSelection();
+      this.updatePrinterStatus(printerData);
     }
   }
 
@@ -280,21 +280,11 @@ class PrinterMonitorApp {
     return `${mins}m`;
   }
 
-  handlePrinterSelection() {
-    const printerId = document.getElementById('printer-select').value;
-    const mappingsContainer = document.getElementById('filament-mappings-container');
+  updatePrinterStatus(printer) {
     const statusMsg = document.getElementById('printer-status-msg');
     const startBtn = document.getElementById('start-print-btn');
 
-    if (!printerId) {
-      mappingsContainer.innerHTML = '<div class="ams-placeholder" style="text-align: center; color: #666; padding: 20px;">Select a printer to view AMS slots</div>';
-      statusMsg.textContent = '';
-      startBtn.disabled = true;
-      return;
-    }
-
-    const printer = this.printers.get(printerId);
-    if (!printer) return;
+    if (!statusMsg || !startBtn) return;
 
     // Safety Check - Allow FINISH state
     const allowedStates = ['IDLE', 'COMPLETED', 'READY', 'FINISH'];
@@ -314,6 +304,25 @@ class PrinterMonitorApp {
       }
       startBtn.disabled = false;
     }
+  }
+
+  handlePrinterSelection() {
+    const printerId = document.getElementById('printer-select').value;
+    const mappingsContainer = document.getElementById('filament-mappings-container');
+    const statusMsg = document.getElementById('printer-status-msg');
+    const startBtn = document.getElementById('start-print-btn');
+
+    if (!printerId) {
+      mappingsContainer.innerHTML = '<div class="ams-placeholder" style="text-align: center; color: #666; padding: 20px;">Select a printer to view AMS slots</div>';
+      statusMsg.textContent = '';
+      startBtn.disabled = true;
+      return;
+    }
+
+    const printer = this.printers.get(printerId);
+    if (!printer) return;
+
+    this.updatePrinterStatus(printer);
 
     // Reset and Render Initial Filament Mapping
     mappingsContainer.innerHTML = '';

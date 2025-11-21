@@ -145,9 +145,18 @@ main {
     flex-direction: column;
     gap: 10px;
     height: 100%;
-    /* Fill available space */
     overflow: hidden;
-    /* Prevent outer scroll */
+}
+
+.table-header {
+    display: grid;
+    grid-template-columns: 2fr 1.5fr 100px 2fr 1.5fr 1fr 1fr 1.5fr;
+    padding: 10px 15px;
+    background-color: var(--card-bg);
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
 }
 
 .table-body {
@@ -156,9 +165,7 @@ main {
     gap: 10px;
     flex: 1;
     overflow-y: auto;
-    /* Scroll only if absolutely needed, but flex should handle it */
     min-height: 0;
-    /* Required for nested flex scrolling */
 }
 
 .printer-row-container {
@@ -167,11 +174,9 @@ main {
     overflow: hidden;
     transition: transform 0.2s;
     flex: 1;
-    /* Auto grow to fill space */
     display: flex;
     flex-direction: column;
     min-height: 80px;
-    /* Minimum height to prevent squishing too much */
 }
 
 .printer-row {
@@ -180,10 +185,7 @@ main {
     padding: 15px;
     align-items: center;
     height: 100%;
-    /* Fill container */
 }
-
-/* ... (rest of existing styles) ... */
 
 /* Multi-Filament Mapping */
 .filament-mapping-row {
