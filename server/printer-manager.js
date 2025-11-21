@@ -113,11 +113,13 @@ class PrinterManager {
 
   parseAMSData(amsData) {
     const slots = [];
+    if (!Array.isArray(amsData)) return slots;
+
     amsData.forEach(ams => {
       if (ams.tray) {
         ams.tray.forEach((tray, index) => {
           slots.push({
-            id: index, // Simplified ID, might need adjustment based on multi-AMS setup
+            id: index, // Simplified ID
             type: tray.tray_type || 'Unknown',
             color: `#${tray.tray_color}` || '#ffffff',
             remain: tray.remain
@@ -126,50 +128,6 @@ class PrinterManager {
       }
     });
     return slots;
-  }
-
-  async startPrintJob(printerId, filePath, filename, amsId) {
-    const printer = this.printers.get(printerId);
-    if (!printer) throw new Error('Printer not found');
-
-    const state = this.printerStates.get(printerId);
-
-    // Safety Check
-    if (state.state !== 'IDLE' && state.state !== 'COMPLETED' && state.state !== 'READY') {
-      throw new Error(`Printer is currently ${state.state}. Cannot start new job.`);
-    }
-
-    // 1. Upload file via FTP
-    const client = new ftp.Client();
-    // client.ftp.verbose = true; // Debug FTP
-
-    try {
-      console.log(`Connecting to FTP ${printer.ip}...`);
-      await client.access({
-        host: printer.ip,
-        user: 'bblp',
-        password: printer.accessCode,
-        secure: true, // FTPS
-        secureOptions: { rejectUnauthorized: false } // Self-signed cert
-      });
-
-      console.log(`Uploading ${filename}...`);
-      await client.uploadFrom(filePath, `/data/${filename}`); // Upload to /data/ (SD card root usually)
-      console.log('Upload complete.');
-
-    } catch (err) {
-      console.error('FTP Error:', err);
-      throw new Error(`FTP Upload Failed: ${err.message}`);
-    } finally {
-      client.close();
-    }
-
-    // 2. Send MQTT Command
-    const mqttClient = this.mqttClients.get(printerId);
-    if (!mqttClient) throw new Error('MQTT Client not found');
-
-    console.log(`Sending print command for ${filename} with AMS slot ${amsId}...`);
-    mqttClient.startPrint(filename, amsId);
   }
 
   detectError(print) {

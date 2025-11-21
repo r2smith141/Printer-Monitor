@@ -120,7 +120,7 @@ class BambuMQTTClient {
     });
   }
 
-  startPrint(filename, amsId) {
+  startPrint(filename, amsMapping) {
     if (!this.client || !this.client.connected) {
       console.log(`Cannot start print on ${this.config.name} - not connected`);
       return;
@@ -130,32 +130,13 @@ class BambuMQTTClient {
 
     // Construct print command payload
     // Note: This payload structure is based on typical Bambu Lab MQTT commands
-    // It might need adjustment based on specific firmware versions
-    const payload = {
-      print: {
-        sequence_id: '0',
-        command: 'project_file',
-        param: `metadata/plate_1.gcode`, // Usually points to the plate file inside 3mf, or just filename for gcode
-        project_id: '0',
-        profile_id: '0',
-        task_id: '0',
-        subtask_id: '0',
-        subtask_name: '',
-        file: filename,
-        url: `ftp://${this.config.ip}/data/${filename}`, // URL for printer to download if not local? Or just path?
-        // For local SD card files, usually just 'file' param is enough with 'print' command
-        // Let's try the simpler 'print' command for SD card files
-      }
-    };
-
-    // Alternative simpler payload for SD card print
     const simplePayload = {
       print: {
         sequence_id: "0",
         command: "print",
         file: filename,
         param: "", // specific options
-        ams_mapping: [parseInt(amsId)] // AMS slot mapping
+        ams_mapping: amsMapping // AMS slot mapping array
       }
     };
 

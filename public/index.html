@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bambu Lab Printer Monitor</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
     <div id="app-container">
         <header>
@@ -13,7 +15,7 @@
                 <img src="/logo.webp" alt="Logo" class="header-logo" id="header-logo">
                 <h1>3D Printer Monitor</h1>
             </div>
-            
+
             <div class="tabs-nav">
                 <button class="tab-btn active" data-tab="monitor">Monitor</button>
                 <button class="tab-btn" data-tab="print-job">Print Job</button>
@@ -82,12 +84,15 @@
                         </div>
 
                         <div class="form-group">
-                            <label>Select Filament (AMS)</label>
-                            <div id="ams-selection" class="ams-grid">
-                                <!-- AMS slots will be populated dynamically -->
-                                <div class="ams-placeholder" style="grid-column: 1/-1; text-align: center; color: #666;">
-                                    Select a printer to view AMS slots
-                                </div>
+                            <label>Filament Mapping</label>
+                            <div id="filament-mappings-container">
+                                <!-- Dynamic mapping rows will be added here -->
+                            </div>
+                            <div class="mapping-actions">
+                                <button type="button" id="add-filament-btn" class="btn btn-secondary">+ Add
+                                    Filament</button>
+                                <button type="button" id="remove-filament-btn" class="btn btn-secondary"
+                                    style="display: none;">- Remove</button>
                             </div>
                         </div>
 
@@ -148,4 +153,5 @@
     <script src="/js/model-viewer.js"></script>
     <script src="/js/app.js"></script>
 </body>
+
 </html>

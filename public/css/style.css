@@ -1,6 +1,7 @@
 /* Global Styles */
 :root {
-    --primary-color: #00ae42; /* Bambu Lab Green */
+    --primary-color: #00ae42;
+    /* Bambu Lab Green */
     --bg-color: #1a1a1a;
     --card-bg: #2d2d2d;
     --text-color: #ffffff;
@@ -23,7 +24,8 @@ body {
     background-color: var(--bg-color);
     color: var(--text-color);
     height: 100vh;
-    overflow: hidden; /* Prevent scrolling on body */
+    overflow: hidden;
+    /* Prevent scrolling on body */
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -33,19 +35,21 @@ body {
 @media (min-width: 769px) {
     body {
         justify-content: center;
-        background-color: #000; /* Letterbox color */
+        background-color: #000;
+        /* Letterbox color */
     }
 
     #app-container {
         width: 100%;
-        max-width: 1600px; /* Max width to prevent too large on huge screens */
+        max-width: 1600px;
+        /* Max width to prevent too large on huge screens */
         aspect-ratio: 16/9;
         background-color: var(--bg-color);
         display: flex;
         flex-direction: column;
         position: relative;
         overflow: hidden;
-        box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
     }
 }
 
@@ -66,7 +70,7 @@ header {
     justify-content: space-between;
     align-items: center;
     padding: 0 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
     flex-shrink: 0;
 }
 
@@ -135,22 +139,26 @@ main {
     display: block;
 }
 
-/* Printers Table */
+/* Printers Table - Auto Flex */
 .printers-table {
     display: flex;
     flex-direction: column;
     gap: 10px;
+    height: 100%;
+    /* Fill available space */
+    overflow: hidden;
+    /* Prevent outer scroll */
 }
 
-.table-header {
-    display: grid;
-    grid-template-columns: 2fr 1.5fr 100px 2fr 1.5fr 1fr 1fr 1.5fr;
-    padding: 10px 15px;
-    background-color: var(--card-bg);
-    border-radius: var(--border-radius);
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
+.table-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex: 1;
+    overflow-y: auto;
+    /* Scroll only if absolutely needed, but flex should handle it */
+    min-height: 0;
+    /* Required for nested flex scrolling */
 }
 
 .printer-row-container {
@@ -158,11 +166,12 @@ main {
     border-radius: var(--border-radius);
     overflow: hidden;
     transition: transform 0.2s;
-}
-
-.printer-row-container:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    flex: 1;
+    /* Auto grow to fill space */
+    display: flex;
+    flex-direction: column;
+    min-height: 80px;
+    /* Minimum height to prevent squishing too much */
 }
 
 .printer-row {
@@ -170,7 +179,50 @@ main {
     grid-template-columns: 2fr 1.5fr 100px 2fr 1.5fr 1fr 1fr 1.5fr;
     padding: 15px;
     align-items: center;
+    height: 100%;
+    /* Fill container */
 }
+
+/* ... (rest of existing styles) ... */
+
+/* Multi-Filament Mapping */
+.filament-mapping-row {
+    background-color: #222;
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #444;
+}
+
+.filament-label {
+    display: block;
+    margin-bottom: 10px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.mapping-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.btn-secondary {
+    background-color: #444;
+    color: white;
+}
+
+.btn-secondary:hover {
+    background-color: #555;
+}
+
+.ams-slot.selected {
+    border-color: var(--primary-color);
+    background-color: rgba(0, 174, 66, 0.1);
+    box-shadow: 0 0 10px rgba(0, 174, 66, 0.2);
+}
+
 
 /* Columns */
 .col-name {
@@ -201,10 +253,21 @@ main {
     font-weight: 500;
 }
 
-.printer-status.RUNNING { color: var(--success-color); }
-.printer-status.PAUSE { color: var(--warning-color); }
-.printer-status.IDLE { color: var(--text-secondary); }
-.printer-status.OFFLINE { color: var(--danger-color); }
+.printer-status.RUNNING {
+    color: var(--success-color);
+}
+
+.printer-status.PAUSE {
+    color: var(--warning-color);
+}
+
+.printer-status.IDLE {
+    color: var(--text-secondary);
+}
+
+.printer-status.OFFLINE {
+    color: var(--danger-color);
+}
 
 .col-model {
     display: flex;
@@ -370,7 +433,7 @@ main {
     height: 30px;
     border-radius: 50%;
     border: 2px solid #fff;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
 }
 
 .filament-type {

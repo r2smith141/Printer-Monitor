@@ -58,87 +58,40 @@ app.get('/api/files', (req, res) => {
       file.toLowerCase().endsWith('.gcode') ||
       file.toLowerCase().endsWith('.3mf')
     );
-    res.json(validFiles);
-  });
-});
+    // Send initial state
+    socket.emit('initial-state', printerManager.getAllStates());
 
-// Start Print Job
-app.post('/api/print', upload.single('file'), async (req, res) => {
-  try {
-    const { printerId, amsId, source, filename } = req.body;
-    let filePath;
-    let originalName;
+    socket.on('request-refresh', () => {
+      console.log('Client requested refresh');
+      printerManager.mqttClients.forEach(client => client.requestStatus());
+    });
 
-    if (source === 'upload') {
-      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
-      filePath = req.file.path;
-      originalName = req.file.originalname;
-    } else {
-      if (!filename) return res.status(400).json({ error: 'No filename provided' });
-      filePath = path.join(gcodeDir, filename);
-      originalName = filename;
-
-      if (!fs.existsSync(filePath)) {
-        return res.status(404).json({ error: 'File not found' });
-      }
-    }
-
-    // Execute Print Job
-    await printerManager.startPrintJob(printerId, filePath, originalName, amsId);
-
-    // Cleanup uploaded file
-    if (source === 'upload') {
-      fs.unlink(filePath, (err) => {
-        if (err) console.error('Error deleting temp file:', err);
-      });
-    }
-
-    res.json({ success: true, message: 'Print job started' });
-
-  } catch (error) {
-    console.error('Print Job Error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Socket.io Connection
-io.on('connection', (socket) => {
-  console.log('Client connected');
-
-  // Send initial state
-  socket.emit('initial-state', printerManager.getAllStates());
-
-  socket.on('request-refresh', () => {
-    console.log('Client requested refresh');
-    printerManager.mqttClients.forEach(client => client.requestStatus());
+    socket.on('disconnect', () => {
+      console.log('Client disconnected');
+    });
   });
 
-  socket.on('disconnect', () => {
-    console.log('Client disconnected');
+  // Start Server
+  const PORT = process.env.PORT || 3000;
+  server.listen(PORT, () => {
+    console.log(`\n===========================================`);
+    console.log(`  Bambu Lab Printer Monitor`);
+    console.log(`===========================================`);
+    console.log(`Server running on port ${PORT}`);
+    console.log(`Web interface: http://localhost:${PORT}`);
+    console.log(`\nConnecting to printers...`);
+    console.log(`===========================================\n`);
+
+    // Connect to all printers
+    printerManager.connectAll();
   });
-});
 
-// Start Server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-  console.log(`\n===========================================`);
-  console.log(`  Bambu Lab Printer Monitor`);
-  console.log(`===========================================`);
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Web interface: http://localhost:${PORT}`);
-  console.log(`\nConnecting to printers...`);
-  console.log(`===========================================\n`);
-
-  // Connect to all printers
-  printerManager.connectAll();
-});
-
-// Graceful shutdown
-process.on('SIGINT', () => {
-  console.log('\nShutting down...');
-  printerManager.disconnectAll();
-  server.close(() => {
-    console.log('Server stopped');
-    process.exit(0);
+  // Graceful shutdown
+  process.on('SIGINT', () => {
+    console.log('\nShutting down...');
+    printerManager.disconnectAll();
+    server.close(() => {
+      console.log('Server stopped');
+      process.exit(0);
+    });
   });
-});
