@@ -478,6 +478,7 @@ class PrinterMonitorApp {
       startBtn.textContent = 'Start Print';
     }
   }
+}
 
 document.addEventListener('DOMContentLoaded', () => {
   window.app = new PrinterMonitorApp();
