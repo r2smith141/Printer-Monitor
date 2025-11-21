@@ -7,43 +7,106 @@
     <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-    <header>
-        <div class="header-left">
-            <img src="/logo.webp" alt="Logo" class="header-logo" id="header-logo">
-            <h1>3D Printer Monitor</h1>
-        </div>
-        <div class="header-info">
-            <span id="connection-status" class="status-badge disconnected">Disconnected</span>
-            <button id="refresh-btn" class="btn">Refresh All</button>
-        </div>
-    </header>
+    <div id="app-container">
+        <header>
+            <div class="header-left">
+                <img src="/logo.webp" alt="Logo" class="header-logo" id="header-logo">
+                <h1>3D Printer Monitor</h1>
+            </div>
+            
+            <div class="tabs-nav">
+                <button class="tab-btn active" data-tab="monitor">Monitor</button>
+                <button class="tab-btn" data-tab="print-job">Print Job</button>
+            </div>
 
-    <main class="container">
-        <div class="printers-table">
-            <div class="table-header">
-                <div class="col-name">Printer</div>
-                <div class="col-status">Status</div>
-                <div class="col-model">Preview</div>
-                <div class="col-file">File</div>
-                <div class="col-progress">Progress</div>
-                <div class="col-layer">Layers</div>
-                <div class="col-time">Time Left</div>
-                <div class="col-temps">Temperatures</div>
+            <div class="header-info">
+                <button id="refresh-btn" class="btn">Refresh All</button>
             </div>
-            <div id="printers-list" class="table-body">
-                <!-- Printer rows will be dynamically inserted here -->
+        </header>
+
+        <main>
+            <!-- Monitor Tab -->
+            <div id="monitor-tab" class="tab-content active">
+                <div class="printers-table">
+                    <div class="table-header">
+                        <div class="col-name">Printer</div>
+                        <div class="col-status">State</div>
+                        <div class="col-model">Preview</div>
+                        <div class="col-file">File</div>
+                        <div class="col-progress">Progress</div>
+                        <div class="col-layer">Layers</div>
+                        <div class="col-time">Time Left</div>
+                        <div class="col-temps">Temps</div>
+                    </div>
+                    <div id="printers-list" class="table-body">
+                        <!-- Printer rows will be dynamically inserted here -->
+                    </div>
+                </div>
             </div>
-        </div>
-    </main>
+
+            <!-- Print Job Tab -->
+            <div id="print-job-tab" class="tab-content">
+                <div class="print-job-container">
+                    <h2>Start New Print</h2>
+                    <form id="print-job-form">
+                        <div class="form-group">
+                            <label for="printer-select">Select Printer</label>
+                            <select id="printer-select" class="form-control" required>
+                                <option value="">-- Select a Printer --</option>
+                            </select>
+                            <div id="printer-status-msg" style="margin-top: 5px; font-size: 0.9rem;"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label>File Source</label>
+                            <div class="file-source-toggle">
+                                <label class="radio-label">
+                                    <input type="radio" name="file-source" value="local" checked> Local Files
+                                </label>
+                                <label class="radio-label">
+                                    <input type="radio" name="file-source" value="upload"> Upload File
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group" id="local-file-group">
+                            <label for="local-file-select">Select File</label>
+                            <select id="local-file-select" class="form-control">
+                                <option value="">-- Select a File --</option>
+                            </select>
+                        </div>
+
+                        <div class="form-group" id="upload-file-group" style="display: none;">
+                            <label for="file-upload">Upload G-code / 3MF</label>
+                            <input type="file" id="file-upload" class="form-control" accept=".gcode,.3mf">
+                        </div>
+
+                        <div class="form-group">
+                            <label>Select Filament (AMS)</label>
+                            <div id="ams-selection" class="ams-grid">
+                                <!-- AMS slots will be populated dynamically -->
+                                <div class="ams-placeholder" style="grid-column: 1/-1; text-align: center; color: #666;">
+                                    Select a printer to view AMS slots
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" id="start-print-btn" class="btn btn-large" disabled>Start Print</button>
+                    </form>
+                </div>
+            </div>
+        </main>
+    </div>
 
     <template id="printer-row-template">
         <div class="printer-row-container" data-printer-id="">
             <div class="printer-row">
                 <div class="col-name">
+                    <div class="connection-icon disconnected" title="Disconnected"></div>
                     <span class="printer-name"></span>
                 </div>
                 <div class="col-status">
-                    <span class="printer-status"></span>
+                    <span class="printer-status">--</span>
                 </div>
                 <div class="col-model">
                     <div class="model-viewer-small">

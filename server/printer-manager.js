@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const ftp = require('basic-ftp');
 const BambuMQTTClient = require('./mqtt-client');
 
 class PrinterManager {
@@ -32,7 +33,8 @@ class PrinterManager {
         nozzleTemp: 0,
         bedTemp: 0,
         lastUpdate: null,
-        error: null
+        error: null,
+        ams: [] // Add AMS data storage
       });
     });
 
@@ -79,8 +81,7 @@ class PrinterManager {
     // Extract relevant data from the print message
     const print = data.print;
     if (print) {
-      console.log(`\n>>> Processing data for ${state.name}`);
-      console.log(`State: ${print.gcode_state}, Progress: ${print.mc_percent}%, File: ${print.gcode_file}`);
+      // console.log(`\n>>> Processing data for ${state.name}`); // Reduce log noise
 
       state.state = print.gcode_state || state.state;
       state.progress = print.mc_percent || 0;
@@ -92,6 +93,11 @@ class PrinterManager {
       state.bedTemp = print.bed_temper || 0;
       state.lastUpdate = new Date();
 
+      // Update AMS Data if available
+      if (print.ams && print.ams.ams) {
+        state.ams = this.parseAMSData(print.ams.ams);
+      }
+
       // Find matching model
       state.modelFile = this.getModelForFile(state.currentFile);
 
@@ -100,14 +106,70 @@ class PrinterManager {
 
       this.printerStates.set(printerId, state);
 
-      console.log(`Emitting update: ${state.name} - ${state.state} ${state.progress}%`);
-
       // Emit update to all connected clients
       this.io.emit('printer-update', state);
-    } else {
-      console.log(`WARNING: No print data in message for ${state.name}`);
-      console.log('Available keys:', Object.keys(data));
     }
+  }
+
+  parseAMSData(amsData) {
+    const slots = [];
+    amsData.forEach(ams => {
+      if (ams.tray) {
+        ams.tray.forEach((tray, index) => {
+          slots.push({
+            id: index, // Simplified ID, might need adjustment based on multi-AMS setup
+            type: tray.tray_type || 'Unknown',
+            color: `#${tray.tray_color}` || '#ffffff',
+            remain: tray.remain
+          });
+        });
+      }
+    });
+    return slots;
+  }
+
+  async startPrintJob(printerId, filePath, filename, amsId) {
+    const printer = this.printers.get(printerId);
+    if (!printer) throw new Error('Printer not found');
+
+    const state = this.printerStates.get(printerId);
+
+    // Safety Check
+    if (state.state !== 'IDLE' && state.state !== 'COMPLETED' && state.state !== 'READY') {
+      throw new Error(`Printer is currently ${state.state}. Cannot start new job.`);
+    }
+
+    // 1. Upload file via FTP
+    const client = new ftp.Client();
+    // client.ftp.verbose = true; // Debug FTP
+
+    try {
+      console.log(`Connecting to FTP ${printer.ip}...`);
+      await client.access({
+        host: printer.ip,
+        user: 'bblp',
+        password: printer.accessCode,
+        secure: true, // FTPS
+        secureOptions: { rejectUnauthorized: false } // Self-signed cert
+      });
+
+      console.log(`Uploading ${filename}...`);
+      await client.uploadFrom(filePath, `/data/${filename}`); // Upload to /data/ (SD card root usually)
+      console.log('Upload complete.');
+
+    } catch (err) {
+      console.error('FTP Error:', err);
+      throw new Error(`FTP Upload Failed: ${err.message}`);
+    } finally {
+      client.close();
+    }
+
+    // 2. Send MQTT Command
+    const mqttClient = this.mqttClients.get(printerId);
+    if (!mqttClient) throw new Error('MQTT Client not found');
+
+    console.log(`Sending print command for ${filename} with AMS slot ${amsId}...`);
+    mqttClient.startPrint(filename, amsId);
   }
 
   detectError(print) {

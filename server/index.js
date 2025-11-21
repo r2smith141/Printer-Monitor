@@ -1,30 +1,42 @@
 const express = require('express');
 const http = require('http');
-const socketIo = require('socket.io');
+const { Server } = require('socket.io');
 const path = require('path');
+const fs = require('fs');
 const cors = require('cors');
+const multer = require('multer');
 const PrinterManager = require('./printer-manager');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server, {
+const io = new Server(server, {
   cors: {
     origin: "*",
     methods: ["GET", "POST"]
   }
 });
 
-const PORT = process.env.PORT || 3000;
-
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
-
-// Serve model files
 app.use('/models', express.static(path.join(__dirname, '../models')));
 
-// Initialize printer manager
+// Multer Setup for Uploads
+const upload = multer({ dest: path.join(__dirname, '../temp_uploads/') });
+
+// Ensure temp directory exists
+if (!fs.existsSync(path.join(__dirname, '../temp_uploads/'))) {
+  fs.mkdirSync(path.join(__dirname, '../temp_uploads/'));
+}
+
+// Ensure gcode_files directory exists
+const gcodeDir = path.join(__dirname, '../gcode_files/');
+if (!fs.existsSync(gcodeDir)) {
+  fs.mkdirSync(gcodeDir);
+}
+
+// Initialize Printer Manager
 const printerManager = new PrinterManager(io);
 
 // API Routes
@@ -33,28 +45,81 @@ app.get('/api/printers', (req, res) => {
 });
 
 app.get('/api/models', (req, res) => {
-  const modelsPath = path.join(__dirname, '../config/models.json');
-  const models = require(modelsPath);
-  res.json(models);
+  res.json(printerManager.modelsConfig);
 });
 
-// Socket.io connection handling
+// List Local Files
+app.get('/api/files', (req, res) => {
+  fs.readdir(gcodeDir, (err, files) => {
+    if (err) {
+      return res.status(500).json({ error: 'Failed to list files' });
+    }
+    const validFiles = files.filter(file =>
+      file.toLowerCase().endsWith('.gcode') ||
+      file.toLowerCase().endsWith('.3mf')
+    );
+    res.json(validFiles);
+  });
+});
+
+// Start Print Job
+app.post('/api/print', upload.single('file'), async (req, res) => {
+  try {
+    const { printerId, amsId, source, filename } = req.body;
+    let filePath;
+    let originalName;
+
+    if (source === 'upload') {
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+      filePath = req.file.path;
+      originalName = req.file.originalname;
+    } else {
+      if (!filename) return res.status(400).json({ error: 'No filename provided' });
+      filePath = path.join(gcodeDir, filename);
+      originalName = filename;
+
+      if (!fs.existsSync(filePath)) {
+        return res.status(404).json({ error: 'File not found' });
+      }
+    }
+
+    // Execute Print Job
+    await printerManager.startPrintJob(printerId, filePath, originalName, amsId);
+
+    // Cleanup uploaded file
+    if (source === 'upload') {
+      fs.unlink(filePath, (err) => {
+        if (err) console.error('Error deleting temp file:', err);
+      });
+    }
+
+    res.json({ success: true, message: 'Print job started' });
+
+  } catch (error) {
+    console.error('Print Job Error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Socket.io Connection
 io.on('connection', (socket) => {
   console.log('Client connected');
 
-  // Send current printer states to newly connected client
+  // Send initial state
   socket.emit('initial-state', printerManager.getAllStates());
+
+  socket.on('request-refresh', () => {
+    console.log('Client requested refresh');
+    printerManager.mqttClients.forEach(client => client.requestStatus());
+  });
 
   socket.on('disconnect', () => {
     console.log('Client disconnected');
   });
-
-  socket.on('request-refresh', () => {
-    printerManager.mqttClients.forEach(client => client.requestStatus());
-  });
 });
 
-// Start server
+// Start Server
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`\n===========================================`);
   console.log(`  Bambu Lab Printer Monitor`);
