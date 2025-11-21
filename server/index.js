@@ -6,6 +6,7 @@ const fs = require('fs');
 const cors = require('cors');
 const multer = require('multer');
 const PrinterManager = require('./printer-manager');
+const ThumbnailExtractor = require('./thumbnail-extractor');
 
 const app = express();
 const server = http.createServer(app);
@@ -36,8 +37,15 @@ if (!fs.existsSync(gcodeDir)) {
   fs.mkdirSync(gcodeDir);
 }
 
-// Initialize Printer Manager
+// Ensure 3mf_files directory exists
+const threemfDir = path.join(__dirname, '../3mf_files/');
+if (!fs.existsSync(threemfDir)) {
+  fs.mkdirSync(threemfDir);
+}
+
+// Initialize Printer Manager and Thumbnail Extractor
 const printerManager = new PrinterManager(io);
+const thumbnailExtractor = new ThumbnailExtractor(threemfDir);
 
 // API Routes
 app.get('/api/printers', (req, res) => {
@@ -60,6 +68,22 @@ app.get('/api/files', (req, res) => {
     );
     res.json(validFiles);
   });
+});
+
+// Get Thumbnail for a file
+app.get('/api/thumbnail/:filename', (req, res) => {
+  const { filename } = req.params;
+
+  // Extract thumbnail from matching .3mf file
+  const thumbnail = thumbnailExtractor.getThumbnailForGcode(filename);
+
+  if (thumbnail) {
+    res.set('Content-Type', 'image/png');
+    res.set('Cache-Control', 'public, max-age=86400'); // Cache for 24 hours
+    res.send(thumbnail);
+  } else {
+    res.status(404).json({ error: 'Thumbnail not found' });
+  }
 });
 
 // Start Print Job

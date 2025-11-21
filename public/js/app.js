@@ -273,13 +273,48 @@ class PrinterMonitorApp {
     const container = document.querySelector(`[data-printer-id="${printer.id}"]`);
     const noModelMessage = container.querySelector('.no-model-message');
     const canvas = container.querySelector('.model-canvas');
+    const modelViewer = container.querySelector('.model-viewer-small');
 
-    if (printer.modelFile && printer.modelFile.modelFile) {
-      const modelPath = `/models/${printer.modelFile.modelFile}`;
-      viewer.loadModel(modelPath);
-      noModelMessage.style.display = 'none';
-      canvas.style.display = 'block';
+    // First, try to load thumbnail from .3mf file
+    if (printer.currentFile) {
+      const thumbnailUrl = `/api/thumbnail/${encodeURIComponent(printer.currentFile)}`;
+
+      // Try to load thumbnail
+      fetch(thumbnailUrl)
+        .then(response => {
+          if (response.ok) {
+            return response.blob();
+          }
+          throw new Error('No thumbnail');
+        })
+        .then(blob => {
+          // Display thumbnail as background image
+          const imageUrl = URL.createObjectURL(blob);
+          modelViewer.style.backgroundImage = `url(${imageUrl})`;
+          modelViewer.style.backgroundSize = 'contain';
+          modelViewer.style.backgroundPosition = 'center';
+          modelViewer.style.backgroundRepeat = 'no-repeat';
+          canvas.style.display = 'none';
+          noModelMessage.style.display = 'none';
+        })
+        .catch(() => {
+          // Fallback to STL model if thumbnail not available
+          modelViewer.style.backgroundImage = 'none';
+
+          if (printer.modelFile && printer.modelFile.modelFile) {
+            const modelPath = `/models/${printer.modelFile.modelFile}`;
+            viewer.loadModel(modelPath);
+            noModelMessage.style.display = 'none';
+            canvas.style.display = 'block';
+          } else {
+            viewer.clearModel();
+            noModelMessage.style.display = 'block';
+            canvas.style.display = 'none';
+          }
+        });
     } else {
+      // No file, clear everything
+      modelViewer.style.backgroundImage = 'none';
       viewer.clearModel();
       noModelMessage.style.display = 'block';
       canvas.style.display = 'none';

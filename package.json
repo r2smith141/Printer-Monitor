@@ -21,7 +21,8 @@
     "socket.io": "^4.6.0",
     "cors": "^2.8.5",
     "multer": "^1.4.5-lts.1",
-    "basic-ftp": "^5.0.3"
+    "basic-ftp": "^5.0.3",
+    "adm-zip": "^0.5.10"
   },
   "devDependencies": {
     "nodemon": "^3.0.0"
