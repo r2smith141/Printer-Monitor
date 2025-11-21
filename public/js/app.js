@@ -115,4 +115,16 @@ class PrinterMonitorApp {
     });
   }
 
+
+
+  setupPrintJobForm() {
+    // TODO: Implement print job form handling
+    console.log('setupPrintJobForm not implemented yet');
+  }
+
+
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  window.app = new PrinterMonitorApp();
 });

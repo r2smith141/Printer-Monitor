@@ -58,40 +58,46 @@ app.get('/api/files', (req, res) => {
       file.toLowerCase().endsWith('.gcode') ||
       file.toLowerCase().endsWith('.3mf')
     );
-    // Send initial state
-    socket.emit('initial-state', printerManager.getAllStates());
+    res.json(validFiles);
+  });
+});
 
-    socket.on('request-refresh', () => {
-      console.log('Client requested refresh');
-      printerManager.mqttClients.forEach(client => client.requestStatus());
-    });
+io.on('connection', (socket) => {
+  console.log('Client connected');
+  // Send initial state
+  socket.emit('initial-state', printerManager.getAllStates());
 
-    socket.on('disconnect', () => {
-      console.log('Client disconnected');
-    });
+  socket.on('request-refresh', () => {
+    console.log('Client requested refresh');
+    printerManager.mqttClients.forEach(client => client.requestStatus());
   });
 
-  // Start Server
-  const PORT = process.env.PORT || 3000;
-  server.listen(PORT, () => {
-    console.log(`\n===========================================`);
-    console.log(`  Bambu Lab Printer Monitor`);
-    console.log(`===========================================`);
-    console.log(`Server running on port ${PORT}`);
-    console.log(`Web interface: http://localhost:${PORT}`);
-    console.log(`\nConnecting to printers...`);
-    console.log(`===========================================\n`);
-
-    // Connect to all printers
-    printerManager.connectAll();
+  socket.on('disconnect', () => {
+    console.log('Client disconnected');
   });
+});
 
-  // Graceful shutdown
-  process.on('SIGINT', () => {
-    console.log('\nShutting down...');
-    printerManager.disconnectAll();
-    server.close(() => {
-      console.log('Server stopped');
-      process.exit(0);
-    });
+// Start Server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`\n===========================================`);
+  console.log(`  Bambu Lab Printer Monitor`);
+  console.log(`===========================================`);
+  console.log(`Server running on port ${PORT}`);
+  console.log(`Web interface: http://localhost:${PORT}`);
+  console.log(`\nConnecting to printers...`);
+  console.log(`===========================================\n`);
+
+  // Connect to all printers
+  printerManager.connectAll();
+});
+
+// Graceful shutdown
+process.on('SIGINT', () => {
+  console.log('\nShutting down...');
+  printerManager.disconnectAll();
+  server.close(() => {
+    console.log('Server stopped');
+    process.exit(0);
   });
+});
